@@ -1,0 +1,16 @@
+# Dependencies
+node_modules
+# Production
+dist
+# Environment Variables
+.env
+# Editor directories and files
+.vscode
+# Vite
+.vite
+# Temporary files
+.DS_Store
+Thumbs.db
+*.pem
+
+site.webmanifest
