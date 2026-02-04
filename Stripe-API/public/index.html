@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stripe Payment Demo</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+    }
+    #payment-form {
+      border: 1px solid #ddd;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    #card-element {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 20px 0;
+    }
+    button {
+      background: #5469d4;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #4053b8;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    #error-message {
+      color: red;
+      margin-top: 10px;
+    }
+    #success-message {
+      color: green;
+      margin-top: 10px;
+    }
+    .amount-input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Stripe Payment Demo</h1>
+  
+  <form id="payment-form">
+    <label for="amount">Amount (KES):</label>
+    <input 
+      type="number" 
+      id="amount" 
+      class="amount-input" 
+      placeholder="Enter amount" 
+      value="1000"
+      min="50"
+      required
+    />
+    
+    <label for="card-element">Card Details:</label>
+    <div id="card-element"></div>
+    
+    <button type="submit" id="submit-button">
+      Pay KES <span id="display-amount">1000</span>
+    </button>
+    
+    <div id="error-message"></div>
+    <div id="success-message"></div>
+  </form>
+
+  <script>
+    let stripe;
+    let elements;
+    let cardElement;
+
+    // Initialize Stripe
+    async function initialize() {
+      // Get publishable key from server
+      const response = await fetch('/config');
+      const { publishableKey } = await response.json();
+      
+      stripe = Stripe(publishableKey);
+      elements = stripe.elements();
+      
+      // Create card element
+      cardElement = elements.create('card', {
+        style: {
+          base: {
+            fontSize: '16px',
+            color: '#32325d',
+          }
+        }
+      });
+      cardElement.mount('#card-element');
+
+      // Update display amount when input changes
+      document.getElementById('amount').addEventListener('input', (e) => {
+        document.getElementById('display-amount').textContent = e.target.value;
+      });
+    }
+
+    // Handle form submission
+    document.getElementById('payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitButton = document.getElementById('submit-button');
+      const errorMessage = document.getElementById('error-message');
+      const successMessage = document.getElementById('success-message');
+      
+      // Clear previous messages
+      errorMessage.textContent = '';
+      successMessage.textContent = '';
+      
+      // Disable button
+      submitButton.disabled = true;
+      submitButton.textContent = 'Processing...';
+      
+      try {
+        // Get amount in cents
+        const amount = parseInt(document.getElementById('amount').value) * 100;
+        
+        // Create payment intent on server
+        const response = await fetch('/create-payment-intent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            amount: amount,
+            currency: 'kes'
+          })
+        });
+        
+        const { clientSecret } = await response.json();
+        
+        // Confirm payment with Stripe
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+          }
+        });
+        
+        if (error) {
+          errorMessage.textContent = error.message;
+          submitButton.disabled = false;
+          submitButton.textContent = 'Pay KES ' + document.getElementById('amount').value;
+        } else if (paymentIntent.status === 'succeeded') {
+          successMessage.textContent = '✅ Payment successful! Payment ID: ' + paymentIntent.id;
+          cardElement.clear();
+          document.getElementById('amount').value = '1000';
+          submitButton.disabled = false;
+          submitButton.textContent = 'Pay KES 1000';
+        }
+      } catch (err) {
+        errorMessage.textContent = 'An error occurred: ' + err.message;
+        submitButton.disabled = false;
+        submitButton.textContent = 'Pay KES ' + document.getElementById('amount').value;
+      }
+    });
+
+    // Initialize on page load
+    initialize();
+  </script>
+</body>
+</html>
