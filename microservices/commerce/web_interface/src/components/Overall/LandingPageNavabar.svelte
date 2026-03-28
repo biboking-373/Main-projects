@@ -1,10 +1,8 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-
-  const dispatch = createEventDispatcher();
+  let { onnavigate } = $props();
 
   function navigateTo(page) {
-    dispatch('navigate', { page });
+    onnavigate?.({ page });
   }
 </script>
 
@@ -20,10 +18,12 @@
   </ul>
 
   <div class="nav-actions">
-    <button class="btn-login" on:click={() => navigateTo('login')}>Login</button>
-    <button class="btn-signup" on:click={() => navigateTo('signup')}>Sign Up</button>
+    <button class="btn-login" onclick={() => navigateTo('login')}>Login</button>
+    <button class="btn-signup" onclick={() => navigateTo('signup')}>Sign Up</button>
   </div>
 </nav>
+
+<!-- keep all your existing <style> unchanged -->
 
 <style>
   .navbar {

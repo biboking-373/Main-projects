@@ -1,6 +1,7 @@
 <script>
 import Router from 'svelte-spa-router';
-import { wrap } from 'svelte-spa-router/wrap'
+import { replace } from 'svelte-spa-router';
+import { wrap } from 'svelte-spa-router/wrap';
 
 
 import Authentication from './routes/Overall/Authentication.svelte'; //public route
@@ -8,6 +9,7 @@ import Authentication from './routes/Overall/Authentication.svelte'; //public ro
 const publicroutes = ["/auth"];
 const routes = {
   "/auth": Authentication,
+  "*": () => replace('/auth'),
 };
 </script>
 

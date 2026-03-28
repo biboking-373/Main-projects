@@ -93,7 +93,7 @@
     margin: 0;
     padding: 0;
     font-family: 'DM Sans', sans-serif;
-    background-color: #0d1117;
+    background-color: #1e2329;
     color: #e6edf3;
     min-height: 100vh;
   }

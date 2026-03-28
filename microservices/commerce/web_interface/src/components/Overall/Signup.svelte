@@ -21,7 +21,7 @@
       <span class="input-info">Enter a valid email address.</span>
 
       <label for="password">Password *</label>
-      <input type="password" id="password" name="password"required>
+      <input type="password" id="password" name="password"required minlength="6">
       <span class="input-info">Minimum 6 characters.</span>
 
       <label for="confirmPassword">Confirm Password *</label>
